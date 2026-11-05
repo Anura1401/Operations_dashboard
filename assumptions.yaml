@@ -1,0 +1,285 @@
+# ==============================================================================
+# assumptions.yaml
+# Complete parameter dictionary for synthetic teleoperation operations simulation.
+# Every planted effect is explicitly defined with its value, rationale, and note.
+# ==============================================================================
+
+meta:
+  notice: "All parameters are simulated model assumptions, not real company data."
+
+global:
+  random_seed:
+    value: 42
+    rationale: "Ensures fully reproducible dataset generation across runs"
+    note: "assumption, not real data"
+  reference_date:
+    value: "2026-11-01"
+    rationale: "Simulated evaluation cut-off date for tenure and reporting calculations"
+    note: "assumption, not real data"
+  simulation_days:
+    value: 90
+    rationale: "Standard quarterly operational telemetry window (90 days)"
+    note: "assumption, not real data"
+
+workforce:
+  total_operators:
+    value: 150
+    rationale: "Target size of simulated distributed operator fleet"
+    note: "assumption, not real data"
+  regional_counts:
+    India:
+      count: 90
+      share: 0.60
+      rationale: "Primary global offshore teleoperation hub"
+      note: "assumption, not real data"
+    Mexico:
+      count: 38
+      share: 0.253
+      rationale: "Nearshore teleoperation center aligned with US time zones"
+      note: "assumption, not real data"
+    US:
+      count: 22
+      share: 0.147
+      rationale: "Domestic operating center for low-latency specialized oversight"
+      note: "assumption, not real data"
+  hourly_wages_usd:
+    India:
+      min: 4.00
+      max: 6.00
+      rationale: "Simulated competitive offshore entry/mid teleoperation wage"
+      note: "assumption, not real data"
+    Mexico:
+      min: 7.00
+      max: 10.00
+      rationale: "Simulated nearshore technical teleoperation wage"
+      note: "assumption, not real data"
+    US:
+      min: 20.00
+      max: 26.00
+      rationale: "Simulated domestic specialized robotics operator wage"
+      note: "assumption, not real data"
+  tenure_distribution:
+    new_cohort_prob:
+      value: 0.16
+      days_min: 5
+      days_max: 30
+      rationale: "Recent hires with less than 30 days experience"
+      note: "assumption, not real data"
+    mid_cohort_prob:
+      value: 0.22
+      days_min: 31
+      days_max: 90
+      rationale: "Developing operators with 1 to 3 months experience"
+      note: "assumption, not real data"
+    senior_cohort_prob:
+      value: 0.62
+      days_min: 91
+      days_max: 540
+      rationale: "Tenured operators hired across the preceding 18 months"
+      note: "assumption, not real data"
+  shift_distribution:
+    Morning:
+      prob: 0.38
+      hours: [6, 7, 8, 9, 10, 11, 12, 13]
+      rationale: "Standard day shift coverage"
+      note: "assumption, not real data"
+    Evening:
+      prob: 0.38
+      hours: [14, 15, 16, 17, 18, 19, 20, 21]
+      rationale: "Peak afternoon/evening warehouse operations coverage"
+      note: "assumption, not real data"
+    Night:
+      prob: 0.24
+      hours: [22, 23, 0, 1, 2, 3, 4, 5]
+      rationale: "Overnight facility maintenance and edge case support"
+      note: "assumption, not real data"
+
+shifts:
+  work_week_active_prob:
+    value: 0.72
+    rationale: "Simulates ~5 shifts per operator in a 7-day rolling window"
+    note: "assumption, not real data"
+  scheduled_hours_per_shift:
+    value: 8.0
+    rationale: "Standard 8-hour teleoperation shift"
+    note: "assumption, not real data"
+  utilization_by_shift:
+    Evening:
+      mean: 0.92
+      std: 0.06
+      rationale: "Overloaded evening shifts under peak customer warehouse volume"
+      note: "assumption, not real data"
+    Morning:
+      mean: 0.77
+      std: 0.05
+      rationale: "Balanced daytime utilization with standard buffer capacity"
+      note: "assumption, not real data"
+    Night:
+      mean: 0.55
+      std: 0.05
+      rationale: "Underutilized night shift with substantial standby time"
+      note: "assumption, not real data"
+  utilization_clamp:
+    min: 0.35
+    max: 1.15
+    rationale: "Permits minor authorized overtime while bounding realistic shift duration"
+    note: "assumption, not real data"
+
+tasks:
+  types_and_shares:
+    pick_and_place:
+      share: 0.32
+      success_adjustment: 0.03
+      base_interventions: 1.2
+      rationale: "High-volume structured manipulation task"
+      note: "assumption, not real data"
+    bin_sorting:
+      share: 0.26
+      success_adjustment: 0.01
+      base_interventions: 1.6
+      rationale: "Semi-structured parcel and item sorting task"
+      note: "assumption, not real data"
+    recovery_assist:
+      share: 0.16
+      success_adjustment: -0.03
+      base_interventions: 2.4
+      rationale: "Unjamming robot base or clearing physical faults"
+      note: "assumption, not real data"
+    door_navigation:
+      share: 0.13
+      success_adjustment: -0.09
+      base_interventions: 2.8
+      rationale: "Unlatching and traversing heavy access doors"
+      note: "assumption, not real data"
+    deformable_handling:
+      share: 0.13
+      success_adjustment: -0.11
+      base_interventions: 3.1
+      rationale: "Manipulating flexible bags and unmodeled textiles"
+      note: "assumption, not real data"
+  robot_sites:
+    US:
+      share: 0.85
+      rationale: "Primary customer deployment footprint"
+      note: "assumption, not real data"
+    Mexico:
+      share: 0.15
+      rationale: "Secondary nearshore manufacturing customer deployments"
+      note: "assumption, not real data"
+  duration_minutes:
+    mean: 14.5
+    std: 4.2
+    min: 5.0
+    max: 45.0
+    rationale: "Standard teleoperated intervention duration distribution"
+    note: "assumption, not real data"
+
+network:
+  latencies_ms:
+    US_to_US:
+      mean: 40.0
+      std: 6.0
+      rationale: "Domestic terrestrial fiber round-trip latency"
+      note: "assumption, not real data"
+    US_to_Mexico:
+      mean: 52.0
+      std: 8.0
+      rationale: "Cross-border North American terrestrial routing"
+      note: "assumption, not real data"
+    Mexico_to_US:
+      mean: 55.0
+      std: 9.0
+      rationale: "Nearshore cross-border routing to US cloud/robot edge"
+      note: "assumption, not real data"
+    Mexico_to_Mexico:
+      mean: 36.0
+      std: 6.0
+      rationale: "Intra-Mexico regional routing"
+      note: "assumption, not real data"
+    India_to_US:
+      mean: 130.0
+      std: 14.0
+      rationale: "Submarine transpacific/transatlantic intercontinental routing"
+      note: "assumption, not real data"
+    India_to_Mexico:
+      mean: 138.0
+      std: 16.0
+      rationale: "Submarine intercontinental routing to Latin America"
+      note: "assumption, not real data"
+  jitter_spike:
+    probability: 0.045
+    min_ms: 35.0
+    max_ms: 75.0
+    rationale: "Transient internet routing congestion and bufferbloat"
+    note: "assumption, not real data"
+  floor_ms:
+    value: 18.0
+    rationale: "Physical speed-of-light propagation minimum"
+    note: "assumption, not real data"
+
+planted_effects:
+  baseline_success_prob:
+    value: 0.91
+    rationale: "Nominal success rate for senior operator on routine task"
+    note: "assumption, not real data"
+  tenure_penalties:
+    under_30_days:
+      penalty: -0.14
+      rationale: "Novice operator learning curve and unfamiliarity with controls"
+      note: "assumption, not real data"
+    days_31_to_90:
+      penalty: -0.06
+      rationale: "Intermediate operator ramp-up phase"
+      note: "assumption, not real data"
+  shift_penalties:
+    night_shift:
+      penalty: -0.08
+      rationale: "General night shift alertness and cognitive fatigue"
+      note: "assumption, not real data"
+    india_night_shift_fatigue:
+      penalty: -0.05
+      rationale: "Compound circadian fatigue from overseas counter-cyclical hours"
+      note: "assumption, not real data"
+  latency_penalties:
+    moderate_100_to_150ms:
+      penalty: -0.03
+      rationale: "Mild control sluggishness across transatlantic links"
+      note: "assumption, not real data"
+    severe_above_150ms:
+      penalty: -0.20
+      rationale: "Control instability cliff when feedback lag exceeds human reaction limits"
+      note: "assumption, not real data"
+  success_probability_bounds:
+    min: 0.35
+    max: 0.98
+    noise_std: 0.02
+    rationale: "Preserves realistic stochastic variance and prevents deterministic ceiling"
+    note: "assumption, not real data"
+
+qa_and_training_yield:
+  review_coverage_prob:
+    value: 0.40
+    rationale: "Audit sample size for human QA supervisor evaluations"
+    note: "assumption, not real data"
+  quality_scoring:
+    success_mean: 4.35
+    failure_mean: 2.10
+    night_penalty: -0.40
+    new_operator_penalty: -0.30
+    high_latency_penalty: -0.35
+    noise_std: 0.65
+    rationale: "QA evaluation score distribution (1 to 5 stars)"
+    note: "assumption, not real data"
+  data_acceptance_probabilities:
+    failed_session: 0.03
+    reviewed_star_5: 0.95
+    reviewed_star_4: 0.86
+    reviewed_star_3: 0.48
+    reviewed_star_2: 0.14
+    reviewed_star_1: 0.04
+    unreviewed_low_interventions: 0.84
+    unreviewed_med_interventions: 0.62
+    unreviewed_high_interventions: 0.30
+    rationale: "Imitation learning training data gate based on smooth execution"
+    note: "assumption, not real data"
+

@@ -1,0 +1,23 @@
+# Python byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# SQLite databases (generated)
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Pytest cache
+.pytest_cache/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
