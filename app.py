@@ -196,8 +196,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+import sys
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+from src.playbook import get_playbook_metrics
+
 DB_PATH = os.path.join(BASE_DIR, "data", "ops.db")
 MEMO_PATH = os.path.join(BASE_DIR, "reports", "ops_memo.md")
+PLAYBOOK_PATH = os.path.join(BASE_DIR, "reports", "playbook.md")
 
 # Minimalist High-Contrast Plotly Theme Settings
 PLOT_FONT = dict(family="Inter, sans-serif", color="#d4d4d8", size=12)
@@ -388,7 +395,8 @@ main_tabs = st.tabs([
     "Executive Overview",
     "Actionable Recommendations",
     "Detailed Telemetry & Leaderboards",
-    "Unit Economics"
+    "Unit Economics",
+    "Playbook"
 ])
 
 # ------------------------------------------------------------------------------
@@ -703,6 +711,78 @@ with main_tabs[3]:
         use_container_width=True
     )
     st.caption("Strategic Takeaway: Mexico offers the highest value-to-latency ratio ($41.14/success with ~55ms latency to US sites), whereas India provides bulk volume scale ($25.76/success).")
+
+# ------------------------------------------------------------------------------
+# TAB 5: PLAYBOOK
+# ------------------------------------------------------------------------------
+with main_tabs[4]:
+    st.markdown("##### Operator Onboarding & QA Playbook")
+    st.caption("Standard operational procedures, QA scoring rubrics, and escalation thresholds grounded in database telemetry.")
+
+    if not os.path.exists(PLAYBOOK_PATH):
+        st.warning("Playbook report not found at `reports/playbook.md`. Please run `python src/playbook.py` to generate it.")
+    else:
+        st.markdown("###### Weekly Metrics Scorecard (Current vs Target)")
+        try:
+            pb_metrics = get_playbook_metrics()
+            scorecard_data = [
+                {
+                    "Metric": "Overall Fleet Success Rate",
+                    "Current Value": f"{pb_metrics['overall_success_rate']:.1f}%",
+                    "Weekly Target": "82.5%",
+                    "Owner Role": "Training Lead",
+                    "Target Justification": "Gating novice operators and routing high-latency tasks lifts completion toward senior levels"
+                },
+                {
+                    "Metric": "Training Data Acceptance Rate",
+                    "Current Value": f"{pb_metrics['data_acceptance_rate']:.1f}%",
+                    "Weekly Target": "66.0%",
+                    "Owner Role": "QA Lead",
+                    "Target Justification": "Enforcing rubric adherence and shifting curation runs to daytime windows improves yields"
+                },
+                {
+                    "Metric": "Evening / Night Shift Utilization",
+                    "Current Value": f"{pb_metrics['eve_util']:.1f}% / {pb_metrics['night_util']:.1f}%",
+                    "Weekly Target": "85.0% / 65.0%",
+                    "Owner Role": "Workforce Manager",
+                    "Target Justification": "Follow-the-sun scheduling smooths evening congestion and eliminates night standby waste"
+                },
+                {
+                    "Metric": "High-Latency Session Share (>= 150 ms)",
+                    "Current Value": f"{pb_metrics['high_lat_share']:.1f}% ({pb_metrics['high_lat_sessions']:,} runs)",
+                    "Weekly Target": "< 4.0%",
+                    "Owner Role": "Infrastructure Lead",
+                    "Target Justification": "Dynamic dispatch ceilings keep latency-critical manipulation away from congested overseas links"
+                },
+                {
+                    "Metric": "Blended Cost per Successful Task",
+                    "Current Value": f"${pb_metrics['blended_cost_per_success']:.2f}",
+                    "Weekly Target": "$39.50",
+                    "Owner Role": "VP of Operations",
+                    "Target Justification": "Reducing failed task retries and night idle hours lowers net labor spend per successful task"
+                }
+            ]
+            scorecard_df = pd.DataFrame(scorecard_data)
+            st.dataframe(
+                scorecard_df,
+                column_config={
+                    "Metric": st.column_config.TextColumn("Operational Metric"),
+                    "Current Value": st.column_config.TextColumn("Current (Database)"),
+                    "Weekly Target": st.column_config.TextColumn("Target SLA"),
+                    "Owner Role": st.column_config.TextColumn("Owner"),
+                    "Target Justification": st.column_config.TextColumn("Improvement Rationale")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
+        except Exception as e:
+            st.error(f"Error loading scorecard metrics: {e}")
+
+        st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+        st.markdown("###### Full Operational Playbook Document")
+        with open(PLAYBOOK_PATH, "r", encoding="utf-8") as f:
+            playbook_content = f.read()
+        st.markdown(playbook_content)
 
 # ==============================================================================
 # FOOTER (No Emojis)

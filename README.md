@@ -61,9 +61,11 @@ ops_dashboard/
 ├── src/
 │   ├── generate_data.py      # Seeded synthetic telemetry generator (reads assumptions.yaml)
 │   ├── load_db.py            # SQLite database schema loader, indexes & constraints
-│   └── analysis.py           # SQL runner, memo numbers generator & markdown exporter
+│   ├── analysis.py           # SQL runner, memo numbers generator & markdown exporter
+│   └── playbook.py           # Operator onboarding & QA playbook generator (grounded in DB queries)
 ├── reports/
-│   └── ops_memo.md           # Auto-generated executive memo with data-backed findings
+│   ├── ops_memo.md           # Auto-generated executive memo with data-backed findings
+│   └── playbook.md           # Operator onboarding & QA playbook with scorecard & escalation rules
 └── tests/
     └── test_sanity.py        # Pytest suite for IDs, foreign keys, latency & utilization
 ```
@@ -134,13 +136,19 @@ All synthetic parameters are declared in `assumptions.yaml` and loaded by `src/g
    ```
    *Runs all 11 SQL queries, prints headline operational metrics, and generates `reports/ops_memo.md` with sensitivity ranges ($\pm 25\%$).*
 
-5. **Launch the Streamlit interactive dashboard:**
+5. **Generate the Operator Onboarding & QA Playbook:**
+   ```bash
+   python src/playbook.py
+   ```
+   *Pulls database findings to compile `reports/playbook.md` with onboarding checklists, QA scoring rubrics, escalation triggers, and weekly scorecards.*
+
+6. **Launch the Streamlit interactive dashboard:**
    ```bash
    streamlit run app.py
    ```
    *Open [http://localhost:8501](http://localhost:8501) in your browser.*
 
-6. **Run the automated sanity test suite:**
+7. **Run the automated sanity test suite:**
    ```bash
    pytest tests/test_sanity.py -v
    ```
@@ -149,35 +157,49 @@ All synthetic parameters are declared in `assumptions.yaml` and loaded by `src/g
 
 ---
 
-## 7. Dashboard Preview & Features
+## 7. Operator Onboarding & QA Playbook
+
+The **Operator Onboarding & QA Playbook** (`reports/playbook.md`) translates analytical findings from the database into repeatable standard operating procedures for operations managers, shift supervisors, and training leads. Every threshold, rubric requirement, and escalation trigger is generated directly from SQLite queries with zero hardcoded values.
+
+### Regeneration Command
+```bash
+python src/playbook.py
+```
+
+### Sample Operational Rule (Novice Gating)
+- **Operational Rule:** Restrict operators in their first 30 days to routine `pick_and_place` and `bin_sorting` tasks under 1-on-1 mentor supervision; block access to dexterous manipulation (`deformable_handling`, `door_navigation`).
+- **Data Grounding & Metric:** Novices experience a **10.1 percentage point** success deficit (72.4% vs 82.5% for seniors >90 days) and generate **4.03 interventions per session** (vs 2.59 for seniors).
+- **Gate Exit Threshold:** Complete 40 live supervised runs maintaining $\ge 80.0\%$ success rate and $\le 2.50$ interventions/session before graduating to independent standard manipulation.
+
+---
+
+## 8. Dashboard Preview & Features
 
 ```
 +------------------------------------------------------------------------------------------+
 |  Teleoperation Ops Intelligence Dashboard                    [SYNTHETIC DATA NOTICE]     |
 +------------------------------------------------------------------------------------------+
-|  Total Sessions   | Success Rate | Avg Latency | Avg QA Score | Data Accept | Cost/Task  |
-|     11,875        |    79.7%     |   99.2 ms   |   3.71 / 5   |    62.4%    |   $42.15   |
+|  Total Sessions   | Success Rate | Avg Latency | Shift Congestion | Unit Labor Cost/Task |
+|     11,875        |    79.7%     |   99.2 ms   |   92% vs 55%     |  $25.76 vs $103.37   |
 +------------------------------------------------------------------------------------------+
-|  [Tab 1: Overview]          - Weekly 4-week rolling trend & volume distributions         |
-|  [Tab 2: Operators]         - Tenure bucket analysis, bottom-10 table & leaderboard      |
-|  [Tab 3: Utilization]       - Shift x Region heatmap & scheduled vs active hours         |
-|  [Tab 4: Latency & Quality] - Latency failure tiers & task complexity breakdown          |
-|  [Tab 5: Cost Diagnostics]  - Unit labor economics & hourly wage vs success scatter      |
-|  [Tab 6: Ops Memo]          - Live markdown rendering of dynamic executive memo          |
+|  [Tab 1: Executive Overview]    - 4-week moving average & the three root operational drivers|
+|  [Tab 2: Recommendations]       - Quantified ROI cards, +/-25% sensitivity & executive memo |
+|  [Tab 3: Playbook]              - Weekly metrics scorecard & standard operating procedures  |
+|  [Tab 4: Detailed Telemetry]    - Bottom-10 operator diagnostics & task difficulty breakdown|
+|  [Tab 5: Unit Economics]        - Fully loaded labor economics across India, Mexico, and US |
 +------------------------------------------------------------------------------------------+
 ```
 
 ### Key Dashboard Views
-- **Executive Overview:** High-level KPI scorecards and an interactive Plotly dual-axis chart showing weekly task success rate alongside a 4-week moving average and QA review scores under the model's assumptions.
-- **Operator Diagnostics:** Direct comparison of new vs. senior cohorts with an actionable bottom-10 operator list (min. 40 sessions) for supervisor intervention.
-- **Shift & Utilization Heatmap:** Matrix visualizing workforce utilization percentages across shifts and geographic operating centers.
-- **Latency & Failure Tiers:** Clear visual representation of the $>150$ ms latency cliff and manipulation task complexity differences.
-- **Cost Diagnostics:** Direct labor cost per successful intervention by region and operator hourly wage scatter plots.
-- **Operations Memo:** Formatted executive memo rendering actionable recommendations with sensitivity ranges directly in-app.
+- **Executive Overview:** High-level KPI scorecards and an interactive Plotly dual-axis chart showing weekly task success rate alongside a 4-week moving average and the three root operational drivers under the model's assumptions.
+- **Actionable Recommendations:** Quantified ROI cards with sensitivity ranges ($\pm 25\%$) and embedded auto-generated operational memorandum.
+- **Playbook:** Operator Onboarding & QA Playbook view with weekly metrics scorecard tracking targets across fleet leads.
+- **Detailed Telemetry & Leaderboards:** Bottom-10 operator ranking (min. 40 sessions) for supervisor mentorship and task difficulty breakdowns.
+- **Unit Economics:** Direct labor cost per successful intervention across India, Mexico, and US hubs.
 
 ---
 
-## 8. Assumptions & Limitations
+## 9. Assumptions & Limitations
 
 1. **Synthetic Nature of Data:** All operator records, shift timestamps, robot teleoperation sessions, latency figures, and QA review ratings are artificially synthesized using probabilistic distributions declared in `assumptions.yaml`.
 2. **Simplified Direct Labor Cost Model:** The cost model accounts for operator hourly wages applied across shift active hours divided by successful sessions. It omits peripheral overhead such as supervisory management, data annotation tools, cloud streaming egress costs, hardware depreciation, and customer site infrastructure fees.
@@ -186,6 +208,6 @@ All synthetic parameters are declared in `assumptions.yaml` and loaded by `src/g
 
 ---
 
-## 9. License & Attribution
+## 10. License & Attribution
 
 This project is released under the **MIT License**. Created as an analytics engineering portfolio demonstration showcasing reproducible data generation, relational modeling, advanced SQL analysis, interactive visualization, and data-backed business reporting under explicit model assumptions.

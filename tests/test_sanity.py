@@ -16,6 +16,7 @@ if BASE_DIR not in sys.path:
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "ops.db")
 MEMO_PATH = os.path.join(BASE_DIR, "reports", "ops_memo.md")
+PLAYBOOK_PATH = os.path.join(BASE_DIR, "reports", "playbook.md")
 
 
 @pytest.fixture(scope="session")
@@ -145,4 +146,40 @@ def test_memo_exists_and_valid():
     assert "Recommendation 3" in content
     assert "Expected Impact (Estimate)" in content
     assert "SYNTHETIC DATA FOR PORTFOLIO DEMONSTRATION ONLY" in content
+
+
+def test_playbook_generator_and_content():
+    """Verify playbook generator executes, reports/playbook.md exists,
+    contains all required section headings, and contains no leftover placeholder text."""
+    from src.playbook import get_playbook_metrics, generate_playbook_markdown
+
+    # Run generator
+    metrics = get_playbook_metrics()
+    assert isinstance(metrics, dict)
+    assert "overall_success_rate" in metrics
+
+    content = generate_playbook_markdown(metrics)
+    assert os.path.exists(PLAYBOOK_PATH), f"Playbook file does not exist at {PLAYBOOK_PATH}"
+
+    # Read file content to verify
+    with open(PLAYBOOK_PATH, "r", encoding="utf-8") as f:
+        file_content = f.read()
+
+    required_headings = [
+        "Section 1: Purpose",
+        "Section 2: Operator Onboarding Checklist",
+        "Section 3: QA Scoring Rubric",
+        "Section 4: Escalation Rules",
+        "Section 5: Shift & Capacity Rules",
+        "Section 6: Weekly Metrics Scorecard",
+        "Section 7: Expected Impact",
+    ]
+    for heading in required_headings:
+        assert heading in file_content, f"Missing required heading '{heading}'"
+
+    # Ensure no leftover placeholders
+    assert "TODO" not in file_content, "Leftover 'TODO' found in playbook.md"
+    assert "X%" not in file_content, "Leftover 'X%' found in playbook.md"
+    assert "Synthetic data" in file_content or "SYNTHETIC DATA" in file_content.upper()
+
 
