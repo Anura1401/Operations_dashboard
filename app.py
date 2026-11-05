@@ -1,12 +1,12 @@
 """
 app.py
-Minimalist, shadcn-inspired Operations Intelligence Dashboard for Teleoperation.
+Minimalist, high-contrast dark theme Operations Intelligence Dashboard.
 Features:
-  - Focused executive landing page with high-signal stats & charts
-  - Predefined user test cases / scenario quick-switches (Baseline, Novice Risk, Shift Fatigue, Latency Cliff)
-  - Neutral zinc/slate monochrome palette with subtle borders and clean typography
-  - Zero clutter: only essential stats, graphs, and actionable recommendations
-  - Fully dynamic slicing and memo synchronization
+  - Clean shadcn-inspired dark palette (zinc-950 / zinc-900 / zinc-800)
+  - Zero emojis across all UI elements, labels, buttons, and charts
+  - High-contrast, legible typography with dedicated metric cards
+  - Predefined user test cases (Baseline, Novice Risk, Shift Fatigue, Latency Cliff)
+  - Seamless dark Plotly charts with transparent backgrounds and sharp axes
 """
 
 import os
@@ -17,130 +17,127 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-# Set page configuration
+# Set page configuration without emojis
 st.set_page_config(
     page_title="Teleoperation Ops Intelligence",
-    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# shadcn/ui Inspired Minimalist Design System
+# High-Contrast Minimalist Dark Theme CSS (shadcn dark palette)
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #09090b;
     }
-    
-    /* Top clean spacing */
+
+    /* Container constraints */
     .block-container {
         padding-top: 2rem;
-        padding-bottom: 3rem;
+        padding-bottom: 3.5rem;
         max-width: 1200px;
     }
     
-    /* Header typography */
+    /* Hero Header */
     .hero-title {
         font-size: 1.85rem;
         font-weight: 700;
         letter-spacing: -0.03em;
-        color: #09090b;
+        color: #fafafa;
         margin-bottom: 0.25rem;
     }
     .hero-sub {
         font-size: 0.95rem;
-        color: #71717a;
+        color: #a1a1aa;
         margin-bottom: 1rem;
         line-height: 1.5;
     }
     
-    /* shadcn Badge Pill */
+    /* Top Status Pill */
     .badge-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         border-radius: 9999px;
-        border: 1px solid #e4e4e7;
-        background-color: #fafafa;
-        padding: 3px 10px;
+        border: 1px solid #27272a;
+        background-color: #121215;
+        padding: 4px 12px;
         font-size: 0.75rem;
         font-weight: 500;
-        color: #71717a;
+        color: #a1a1aa;
         margin-bottom: 1.25rem;
     }
     .badge-dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background-color: #71717a;
+        background-color: #38bdf8;
     }
     
-    /* shadcn Card */
+    /* shadcn Dark Metric Cards */
     .shadcn-card {
-        background: #ffffff;
-        border: 1px solid #e4e4e7;
+        background: #121215;
+        border: 1px solid #27272a;
         border-radius: 10px;
         padding: 1.25rem;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
         margin-bottom: 1rem;
     }
-    
-    /* Metric Card specifics */
     .metric-label {
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: #71717a;
+        color: #a1a1aa;
         margin-bottom: 0.4rem;
     }
     .metric-num {
-        font-size: 1.9rem;
+        font-size: 1.95rem;
         font-weight: 700;
         letter-spacing: -0.03em;
-        color: #09090b;
+        color: #ffffff;
         line-height: 1.1;
     }
     .metric-meta {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         color: #71717a;
         margin-top: 0.35rem;
     }
     .metric-meta.positive {
-        color: #16a34a;
+        color: #34d399;
         font-weight: 500;
     }
     .metric-meta.warning {
-        color: #dc2626;
+        color: #f87171;
         font-weight: 500;
     }
     
     /* Scenario Callout Banner */
     .scenario-banner {
-        background-color: #fafafa;
-        border: 1px solid #e4e4e7;
-        border-left: 3px solid #18181b;
+        background-color: #18181b;
+        border: 1px solid #27272a;
+        border-left: 3px solid #38bdf8;
         border-radius: 8px;
-        padding: 0.85rem 1.1rem;
+        padding: 0.9rem 1.15rem;
         margin-bottom: 1.25rem;
         font-size: 0.875rem;
-        color: #27272a;
+        color: #d4d4d8;
+        line-height: 1.5;
     }
     .scenario-banner strong {
-        color: #09090b;
+        color: #fafafa;
     }
     
-    /* Recommendation Card */
+    /* Recommendation Cards */
     .rec-card {
-        background: #ffffff;
-        border: 1px solid #e4e4e7;
+        background: #121215;
+        border: 1px solid #27272a;
         border-radius: 10px;
-        padding: 1.2rem;
+        padding: 1.25rem;
         margin-bottom: 0.8rem;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
     }
     .rec-badge {
         display: inline-block;
@@ -148,42 +145,52 @@ st.markdown("""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        padding: 2px 8px;
+        padding: 3px 9px;
         border-radius: 4px;
-        background: #f4f4f5;
-        color: #18181b;
-        margin-bottom: 0.5rem;
+        background: #1e1e24;
+        border: 1px solid #2e2e36;
+        color: #38bdf8;
+        margin-bottom: 0.55rem;
     }
     .rec-title {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #09090b;
-        margin-bottom: 0.35rem;
+        color: #fafafa;
+        margin-bottom: 0.4rem;
     }
     .rec-body {
         font-size: 0.83rem;
-        color: #52525b;
-        line-height: 1.45;
-        margin-bottom: 0.5rem;
+        color: #a1a1aa;
+        line-height: 1.5;
+        margin-bottom: 0.65rem;
     }
     .rec-impact {
         font-size: 0.8rem;
         font-weight: 600;
-        color: #09090b;
-        background: #fafafa;
-        border: 1px solid #e4e4e7;
+        color: #f4f4f5;
+        background: #18181b;
+        border: 1px solid #27272a;
         border-radius: 6px;
-        padding: 0.4rem 0.65rem;
+        padding: 0.45rem 0.7rem;
+        line-height: 1.45;
+    }
+    
+    /* Section Headings */
+    h5 {
+        color: #fafafa !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.3rem !important;
     }
     
     /* Clean Footer */
     .minimal-footer {
         text-align: center;
         padding: 2.5rem 0 1rem 0;
-        font-size: 0.78rem;
-        color: #a1a1aa;
-        border-top: 1px solid #f4f4f5;
-        margin-top: 2rem;
+        font-size: 0.8rem;
+        color: #71717a;
+        border-top: 1px solid #1e1e24;
+        margin-top: 2.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -192,13 +199,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "ops.db")
 MEMO_PATH = os.path.join(BASE_DIR, "reports", "ops_memo.md")
 
-# Minimalist Plotly Theme Settings
-PLOT_FONT = dict(family="Inter, sans-serif", color="#27272a", size=12)
-GRID_COLOR = "#f4f4f5"
-LINE_COLOR = "#18181b"
-MUTED_BAR = "#e4e4e7"
-ACCENT_BAR = "#18181b"
-RED_BAR = "#ef4444"
+# Minimalist High-Contrast Plotly Theme Settings
+PLOT_FONT = dict(family="Inter, sans-serif", color="#d4d4d8", size=12)
+GRID_COLOR = "#27272a"
+AXIS_COLOR = "#3f3f46"
 
 
 @st.cache_data(ttl=600)
@@ -246,36 +250,35 @@ operators_raw, shifts_raw, sessions_raw = load_base_data()
 # ==============================================================================
 # PREDEFINED USER TEST CASES / OPERATIONAL SCENARIOS
 # ==============================================================================
-# Store active scenario in session state
 if "scenario" not in st.session_state:
     st.session_state["scenario"] = "baseline"
 
-# Header Section
+# Header Section (No Emojis)
 st.markdown('<div class="hero-title">Teleoperation Ops Intelligence</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-sub">Simulated telemetry across 150 human operators, 11,875 sessions, and 3 global hubs under the model\'s assumptions.</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-sub">Simulated fleet telemetry across 150 human operators, 11,875 sessions, and 3 global hubs under the model\'s assumptions.</div>', unsafe_allow_html=True)
 st.markdown('<div class="badge-pill"><span class="badge-dot"></span> Synthetic Data Simulation &bull; Model Parameters Seed 42 &bull; Portfolio Demo</div>', unsafe_allow_html=True)
 
-# Scenario Selector Bar
+# Scenario Selector Bar (No Emojis)
 st.markdown("**Predefined Scenarios & Test Cases:**")
 sc_col1, sc_col2, sc_col3, sc_col4 = st.columns(4)
 
 with sc_col1:
-    if st.button("🎯 Baseline Fleet", use_container_width=True, type="primary" if st.session_state["scenario"] == "baseline" else "secondary"):
+    if st.button("Baseline Fleet", use_container_width=True, type="primary" if st.session_state["scenario"] == "baseline" else "secondary"):
         st.session_state["scenario"] = "baseline"
         st.rerun()
 
 with sc_col2:
-    if st.button("👶 Novice Ramp Risk", use_container_width=True, type="primary" if st.session_state["scenario"] == "novice" else "secondary"):
+    if st.button("Novice Ramp Risk", use_container_width=True, type="primary" if st.session_state["scenario"] == "novice" else "secondary"):
         st.session_state["scenario"] = "novice"
         st.rerun()
 
 with sc_col3:
-    if st.button("🌙 Graveyard Shift Fatigue", use_container_width=True, type="primary" if st.session_state["scenario"] == "night" else "secondary"):
+    if st.button("Graveyard Shift Fatigue", use_container_width=True, type="primary" if st.session_state["scenario"] == "night" else "secondary"):
         st.session_state["scenario"] = "night"
         st.rerun()
 
 with sc_col4:
-    if st.button("⚡ High Latency Cliff", use_container_width=True, type="primary" if st.session_state["scenario"] == "latency" else "secondary"):
+    if st.button("High Latency Cliff", use_container_width=True, type="primary" if st.session_state["scenario"] == "latency" else "secondary"):
         st.session_state["scenario"] = "latency"
         st.rerun()
 
@@ -328,7 +331,7 @@ for r in ["India", "Mexico", "US"]:
     reg_cost_dict[r] = (spend / r_succ) if r_succ > 0 else 0.0
 
 # ==============================================================================
-# ESSENTIAL STATS ROW (4 High-Signal Cards)
+# ESSENTIAL STATS ROW (4 High-Contrast Cards)
 # ==============================================================================
 c1, c2, c3, c4 = st.columns(4)
 
@@ -379,7 +382,7 @@ with c4:
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# NAVIGATION TABS (Landing Overview + Focused Deeper Dives)
+# NAVIGATION TABS
 # ==============================================================================
 main_tabs = st.tabs([
     "Executive Overview",
@@ -392,7 +395,6 @@ main_tabs = st.tabs([
 # TAB 1: EXECUTIVE OVERVIEW
 # ------------------------------------------------------------------------------
 with main_tabs[0]:
-    # 1. Primary Longitudinal Chart
     st.markdown("##### Longitudinal Fleet Reliability & 4-Week Moving Average")
     
     weekly_agg = filtered_sessions.groupby(
@@ -407,34 +409,36 @@ with main_tabs[0]:
     fig_trend = go.Figure()
     # Benchmark line
     fig_trend.add_hline(
-        y=85.0, line_dash="dash", line_color="#d4d4d8", line_width=1.5,
+        y=85.0, line_dash="dash", line_color="#71717a", line_width=1.5,
         annotation_text="85% Target SLA", annotation_position="top right",
-        annotation_font=dict(size=11, color="#71717a")
+        annotation_font=dict(size=11, color="#a1a1aa")
     )
     # Weekly raw bars
     fig_trend.add_trace(go.Bar(
         x=weekly_agg["week_start"],
         y=weekly_agg["success_rate"],
         name="Weekly Success",
-        marker_color="#f4f4f5",
-        marker_line=dict(color="#e4e4e7", width=1),
+        marker_color="#18181b",
+        marker_line=dict(color="#27272a", width=1),
         hoverinfo="x+y"
     ))
-    # Rolling 4W line
+    # Rolling 4W line (Clean High-Contrast Blue)
     fig_trend.add_trace(go.Scatter(
         x=weekly_agg["week_start"],
         y=weekly_agg["rolling_4w"],
         mode="lines",
         name="4-Week Rolling Average",
-        line=dict(color="#18181b", width=2.5)
+        line=dict(color="#38bdf8", width=2.5)
     ))
     fig_trend.update_layout(
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         height=320,
         font=PLOT_FONT,
         margin=dict(l=30, r=20, t=10, b=30),
-        yaxis=dict(range=[60, 100], gridcolor=GRID_COLOR, zeroline=False, title="Success Rate (%)"),
-        xaxis=dict(showgrid=False, title=None),
+        yaxis=dict(range=[60, 100], gridcolor=GRID_COLOR, zeroline=False, title="Success Rate (%)", linecolor=AXIS_COLOR),
+        xaxis=dict(showgrid=False, title=None, linecolor=AXIS_COLOR),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_trend, use_container_width=True)
@@ -442,7 +446,6 @@ with main_tabs[0]:
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
     st.markdown("##### The Three Root Operational Drivers (Simulated)")
 
-    # 3-Column Minimalist Drivers Breakdown
     d_col1, d_col2, d_col3 = st.columns(3)
 
     with d_col1:
@@ -454,18 +457,23 @@ with main_tabs[0]:
             t_summary,
             x="tenure_bucket",
             y="pct",
-            text=t_summary["pct"].apply(lambda v: f"{v:.1f}%"),
-            color_discrete_sequence=["#18181b"]
+            text=t_summary["pct"].apply(lambda v: f"{v:.1f}%")
         )
         fig_t.update_layout(
-            template="plotly_white",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             height=240,
             font=PLOT_FONT,
             margin=dict(l=10, r=10, t=10, b=10),
             yaxis=dict(range=[50, 100], gridcolor=GRID_COLOR, showticklabels=False, title=None),
-            xaxis=dict(title=None)
+            xaxis=dict(title=None, linecolor=AXIS_COLOR)
         )
-        fig_t.update_traces(textposition="outside", marker_color=["#ef4444", "#71717a", "#18181b"])
+        fig_t.update_traces(
+            textposition="outside",
+            marker_color=["#f87171", "#71717a", "#38bdf8"],
+            marker_line=dict(color="#27272a", width=1)
+        )
         st.plotly_chart(fig_t, use_container_width=True)
         st.caption("Novice operators (<30d) exhibit a 10.1% deficit vs seniors.")
 
@@ -478,18 +486,23 @@ with main_tabs[0]:
             s_summary,
             x="shift",
             y="pct",
-            text=s_summary["pct"].apply(lambda v: f"{v:.1f}%"),
-            color_discrete_sequence=["#18181b"]
+            text=s_summary["pct"].apply(lambda v: f"{v:.1f}%")
         )
         fig_s.update_layout(
-            template="plotly_white",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             height=240,
             font=PLOT_FONT,
             margin=dict(l=10, r=10, t=10, b=10),
             yaxis=dict(range=[50, 100], gridcolor=GRID_COLOR, showticklabels=False, title=None),
-            xaxis=dict(title=None)
+            xaxis=dict(title=None, linecolor=AXIS_COLOR)
         )
-        fig_s.update_traces(textposition="outside", marker_color=["#18181b", "#18181b", "#ef4444"])
+        fig_s.update_traces(
+            textposition="outside",
+            marker_color=["#38bdf8", "#38bdf8", "#f87171"],
+            marker_line=dict(color="#27272a", width=1)
+        )
         st.plotly_chart(fig_s, use_container_width=True)
         st.caption("Night shift operations drop 12.2% below daytime benchmarks.")
 
@@ -504,24 +517,29 @@ with main_tabs[0]:
             l_summary,
             x="latency_bucket",
             y="fail_pct",
-            text=l_summary["fail_pct"].apply(lambda v: f"{v:.1f}%"),
-            color_discrete_sequence=["#18181b"]
+            text=l_summary["fail_pct"].apply(lambda v: f"{v:.1f}%")
         )
         fig_l.update_layout(
-            template="plotly_white",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             height=240,
             font=PLOT_FONT,
             margin=dict(l=10, r=10, t=10, b=10),
             yaxis=dict(range=[0, 50], gridcolor=GRID_COLOR, showticklabels=False, title=None),
-            xaxis=dict(title=None)
+            xaxis=dict(title=None, linecolor=AXIS_COLOR)
         )
-        fig_l.update_traces(textposition="outside", marker_color=["#e4e4e7", "#e4e4e7", "#71717a", "#ef4444"])
+        fig_l.update_traces(
+            textposition="outside",
+            marker_color=["#27272a", "#27272a", "#71717a", "#f87171"],
+            marker_line=dict(color="#27272a", width=1)
+        )
         st.plotly_chart(fig_l, use_container_width=True)
         st.caption("Failure rate jumps to 37.7% on round-trip delays ≥150ms.")
 
 
 # ------------------------------------------------------------------------------
-# TAB 2: ACTIONABLE RECOMMENDATIONS (DATA-BACKED MEMO SUMMARY)
+# TAB 2: ACTIONABLE RECOMMENDATIONS
 # ------------------------------------------------------------------------------
 with main_tabs[1]:
     st.markdown("##### Executive Recommendations & Quantified ROI (Under Model Assumptions)")
@@ -540,7 +558,7 @@ with main_tabs[1]:
             </div>
             <div class="rec-impact">
                 Estimated Lift: +0.11% fleet throughput<br>
-                <span style="font-weight:400; color:#71717a;">Range (±25%): +0.08% to +0.13% (10–16 sessions)</span>
+                <span style="font-weight:400; color:#a1a1aa;">Range (±25%): +0.08% to +0.13% (10–16 sessions)</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -556,7 +574,7 @@ with main_tabs[1]:
             </div>
             <div class="rec-impact">
                 Estimated Lift: +1.63% fleet throughput<br>
-                <span style="font-weight:400; color:#71717a;">Range (±25%): +1.23% to +2.05% (146–243 sessions)</span>
+                <span style="font-weight:400; color:#a1a1aa;">Range (±25%): +1.23% to +2.05% (146–243 sessions)</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -572,13 +590,13 @@ with main_tabs[1]:
             </div>
             <div class="rec-impact">
                 Estimated Lift: +1.60% fleet throughput<br>
-                <span style="font-weight:400; color:#71717a;">Range (±25%): +1.20% to +2.00% (143–238 failures avoided)</span>
+                <span style="font-weight:400; color:#a1a1aa;">Range (±25%): +1.20% to +2.00% (143–238 failures avoided)</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-    with st.expander("📄 View Full Markdown Operations Memorandum (Auto-Generated)"):
+    with st.expander("View Full Markdown Operations Memorandum (Auto-Generated)"):
         if os.path.exists(MEMO_PATH):
             with open(MEMO_PATH, "r", encoding="utf-8") as f:
                 st.markdown(f.read())
@@ -687,7 +705,7 @@ with main_tabs[3]:
     st.caption("Strategic Takeaway: Mexico offers the highest value-to-latency ratio ($41.14/success with ~55ms latency to US sites), whereas India provides bulk volume scale ($25.76/success).")
 
 # ==============================================================================
-# FOOTER
+# FOOTER (No Emojis)
 # ==============================================================================
 st.markdown("""
 <div class="minimal-footer">

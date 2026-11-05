@@ -153,7 +153,7 @@ All synthetic parameters are declared in `assumptions.yaml` and loaded by `src/g
 
 ```
 +------------------------------------------------------------------------------------------+
-|  🤖 Teleoperation Ops Intelligence Dashboard                 [⚠️ SYNTHETIC DATA NOTICE] |
+|  Teleoperation Ops Intelligence Dashboard                    [SYNTHETIC DATA NOTICE]     |
 +------------------------------------------------------------------------------------------+
 |  Total Sessions   | Success Rate | Avg Latency | Avg QA Score | Data Accept | Cost/Task  |
 |     11,875        |    79.7%     |   99.2 ms   |   3.71 / 5   |    62.4%    |   $42.15   |
